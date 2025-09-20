@@ -5,9 +5,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -44,12 +46,39 @@ fun Home(
 ) {
     PostroidTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
+            Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 //TODO figure out how we want these to look
                 //TODO add endpoint adding
-                LabeledDropdownMenu(listOf("Get", "Post", "Delete", "Put"),modifier = Modifier.background(Color.LightGray))
+                val collectionName = remember {mutableStateOf("Untitled")}
+                val endPoint = remember {mutableStateOf("")}
+                Row {
+                    TextField(
+                        value = collectionName.value,
+                        onValueChange = { collectionName.value = it },
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, bottom = 16.dp).weight(1f),
+                        placeholder = { Text("Collection") }
+                    )
+                    IconButton(onClick = {
+                        //TODO switch collection
+                    }) {
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = "More options")
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                    LabeledDropdownMenu(
+                        listOf("Get", "Post", "Delete", "Put"),
+                        modifier = Modifier.padding(16.dp).width(75.dp)
+                    )
+                    TextField(
+                        value = endPoint.value,
+                        onValueChange = { endPoint.value = it },
+                        modifier = Modifier.padding(top = 16.dp).weight(1f),
+                        placeholder = { Text("Endpoint") }
+                    )
+                }
                 val selectedContentIndex = remember { mutableIntStateOf(0) }
                 val contentTitles = listOf(RequestContent.HEADERS.value, RequestContent.BODY.value, RequestContent.PARAMS.value)
+
                 LabeledBox(label = {
                         LabeledDropdownMenu(contentTitles,modifier = Modifier.background(MaterialTheme.colorScheme.primary).padding(16.dp).fillMaxWidth(), selectedContentIndex)
 
@@ -66,6 +95,7 @@ fun Home(
                         val newParamValue = remember { mutableStateOf("") }
                         val params = remember { mutableStateListOf<Pair<String,String>>()}
                         val bodyContent = remember {mutableStateOf("")}
+
                         if (contentTitles[selectedContentIndex.intValue] == RequestContent.HEADERS.value) {
                             headers.forEach {
                                 Row(
