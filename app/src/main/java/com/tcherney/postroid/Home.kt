@@ -49,32 +49,23 @@ fun Home(
             Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 //TODO figure out how we want these to look
                 //TODO add endpoint adding
+                val userAPICollections: ArrayList<UserAPICollection> = arrayListOf()
                 val collectionName = remember {mutableStateOf("Untitled")}
-                val endPoint = remember {mutableStateOf("")}
+                val selectedCollectionIndex = remember{mutableIntStateOf(0)}
+                val collectionNames = remember{mutableStateListOf("Untitled", "New")}
+                //TODO launch effect to watch for press on new?
                 Row {
-                    TextField(
-                        value = collectionName.value,
-                        onValueChange = { collectionName.value = it },
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, bottom = 16.dp).weight(1f),
-                        placeholder = { Text("Collection") }
-                    )
-                    IconButton(onClick = {
-                        //TODO switch collection
-                    }) {
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "More options")
-                    }
+                    TextfieldDropdownMenu(collectionName, selectedCollectionIndex, collectionNames, "Collection", 16.dp, Modifier.weight(1f))
                 }
+                val endPoint = remember {mutableStateOf("")}
+                val selectedEndpointIndex = remember{mutableIntStateOf(0)}
+                val endpointNames = remember{mutableStateListOf("", "New")}
                 Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                     LabeledDropdownMenu(
                         listOf("Get", "Post", "Delete", "Put"),
                         modifier = Modifier.padding(16.dp).width(75.dp)
                     )
-                    TextField(
-                        value = endPoint.value,
-                        onValueChange = { endPoint.value = it },
-                        modifier = Modifier.padding(top = 16.dp).weight(1f),
-                        placeholder = { Text("Endpoint") }
-                    )
+                    TextfieldDropdownMenu(endPoint, selectedEndpointIndex, endpointNames, "Endpoint", 16.dp, Modifier.weight(1f))
                 }
                 val selectedContentIndex = remember { mutableIntStateOf(0) }
                 val contentTitles = listOf(RequestContent.HEADERS.value, RequestContent.BODY.value, RequestContent.PARAMS.value)
