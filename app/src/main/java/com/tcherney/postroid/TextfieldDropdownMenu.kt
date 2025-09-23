@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 
 @Composable
-fun TextfieldDropdownMenu(value: MutableState<String>, selectedIndex: MutableIntState, menuOptions: SnapshotStateList<String>, placeHolderText: String, padding: Dp, modifier: Modifier = Modifier) {
+fun TextfieldDropdownMenu(value: MutableState<String>, selectedIndex: MutableIntState, menuOptions: SnapshotStateList<String>, placeHolderText: String, padding: Dp, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     val expanded = remember{ mutableStateOf(false) }
     TextField(
         value = value.value,
@@ -44,6 +44,7 @@ fun TextfieldDropdownMenu(value: MutableState<String>, selectedIndex: MutableInt
                         value.value = menuOptions[i]
                         selectedIndex.intValue = i
                         expanded.value = false
+                        onClick()
                     }
                 )
             }

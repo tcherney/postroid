@@ -53,7 +53,7 @@ fun Home(
                 val collectionName = remember {mutableStateOf("Untitled")}
                 val selectedCollectionIndex = remember{mutableIntStateOf(0)}
                 val collectionNames = remember{mutableStateListOf("Untitled", "New")}
-                //TODO launch effect to watch for press on new?
+                //TODO all dropdowns will need on clicks to modify the collections when user updates data
                 Row {
                     TextfieldDropdownMenu(collectionName, selectedCollectionIndex, collectionNames, "Collection", 16.dp, Modifier.weight(1f))
                 }
@@ -61,9 +61,29 @@ fun Home(
                 val selectedEndpointIndex = remember{mutableIntStateOf(0)}
                 val endpointNames = remember{mutableStateListOf("", "New")}
                 Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                    val selectedRequestType = remember {mutableIntStateOf(0)}
                     LabeledDropdownMenu(
                         listOf("Get", "Post", "Delete", "Put"),
-                        modifier = Modifier.padding(16.dp).width(75.dp)
+                        modifier = Modifier.padding(16.dp).width(75.dp),
+                        selectedIndex = selectedRequestType,
+                        onClick = {
+                            if (selectedRequestType.intValue == 0) {
+                                userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
+                                    RequestType.GET
+                            }
+                            else if (selectedRequestType.intValue == 1) {
+                                userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
+                                    RequestType.POST
+                            }
+                            else if (selectedRequestType.intValue == 2) {
+                                userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
+                                    RequestType.DELETE
+                            }
+                            else if (selectedRequestType.intValue == 3) {
+                                userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
+                                    RequestType.PUT
+                            }
+                        }
                     )
                     TextfieldDropdownMenu(endPoint, selectedEndpointIndex, endpointNames, "Endpoint", 16.dp, Modifier.weight(1f))
                 }

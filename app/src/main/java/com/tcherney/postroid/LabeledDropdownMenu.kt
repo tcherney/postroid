@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LabeledDropdownMenu(labels: List<String>, modifier: Modifier = Modifier, selectedIndex: MutableIntState = remember{ mutableIntStateOf(0) }) {
+fun LabeledDropdownMenu(labels: List<String>, modifier: Modifier = Modifier, selectedIndex: MutableIntState = remember{ mutableIntStateOf(0) }, onClick: () -> Unit = {}) {
     val expanded = remember{mutableStateOf(false)}
     val selectedLabel = remember{mutableStateOf(labels[selectedIndex.intValue])}
     Box(
@@ -53,6 +53,7 @@ fun LabeledDropdownMenu(labels: List<String>, modifier: Modifier = Modifier, sel
                             selectedLabel.value = label
                             selectedIndex.intValue = i
                             expanded.value = false
+                            onClick()
                         }
                     )
                 }
