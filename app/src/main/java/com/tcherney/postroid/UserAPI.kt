@@ -10,13 +10,12 @@ import okhttp3.Response
 import okio.IOException
 
 private val client = OkHttpClient()
-class UserAPI {
-    val endPoint: String = ""
-    val headers: List<Pair<String,String>> = listOf()
-    val params: List<Pair<String,String>> = listOf()
-    val bodyContent: String = ""
-    var requestType: RequestType = RequestType.GET
-    fun execute() {
+class UserAPI(val endPoint: String = "",
+    val headers: List<Pair<String,String>> = listOf(),
+    val params: List<Pair<String,String>> = listOf(),
+    val bodyContent: String = "",
+    var requestType: RequestType = RequestType.GET){
+    fun execute(onCompletion: (Response) -> Unit) {
         val headersBuilder = Headers.Builder()
         for (h in headers) {
             headersBuilder.add(h.first,h.second)
@@ -35,13 +34,8 @@ class UserAPI {
 
                 override fun onResponse(call: Call, response: Response) {
                     response.use {
+                        onCompletion(response)
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-                        for ((name, value) in response.headers) {
-                            println("$name: $value")
-                        }
-
-                        println(response.body.string())
                     }
                 }
             })
@@ -60,13 +54,8 @@ class UserAPI {
 
                 override fun onResponse(call: Call, response: Response) {
                     response.use {
+                        onCompletion(response)
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-                        for ((name, value) in response.headers) {
-                            println("$name: $value")
-                        }
-
-                        println(response.body.string())
                     }
                 }
             })

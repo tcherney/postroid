@@ -1,5 +1,6 @@
 package com.tcherney.postroid
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,8 +14,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,17 +52,21 @@ fun Home(
             Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 //TODO figure out how we want these to look
                 //TODO add endpoint adding
-                val userAPICollections: ArrayList<UserAPICollection> = arrayListOf()
-                val collectionName = remember {mutableStateOf("Untitled")}
+                val userAPICollections: ArrayList<UserAPICollection> = arrayListOf(UserAPICollection(
+                    userAPIs = listOf(UserAPI(
+                        endPoint = "https://world.openfoodfacts.net/api/v2/product/788434115681",
+                    ))
+                ))
                 val selectedCollectionIndex = remember{mutableIntStateOf(0)}
-                val collectionNames = remember{mutableStateListOf("Untitled", "New")}
+                val collectionName = remember {mutableStateOf(userAPICollections[selectedCollectionIndex.intValue].collectionName)}
+                val collectionNames = remember{mutableStateListOf(userAPICollections[selectedCollectionIndex.intValue].collectionName, "New")}
                 //TODO all dropdowns will need on clicks to modify the collections when user updates data
                 Row {
                     TextfieldDropdownMenu(collectionName, selectedCollectionIndex, collectionNames, "Collection", 16.dp, Modifier.weight(1f))
                 }
-                val endPoint = remember {mutableStateOf("")}
                 val selectedEndpointIndex = remember{mutableIntStateOf(0)}
-                val endpointNames = remember{mutableStateListOf("", "New")}
+                val endPoint = remember {mutableStateOf(userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint)}
+                val endpointNames = remember{mutableStateListOf(userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint, "New")}
                 Row(horizontalArrangement = Arrangement.SpaceEvenly) {
                     val selectedRequestType = remember {mutableIntStateOf(0)}
                     LabeledDropdownMenu(
@@ -67,21 +74,23 @@ fun Home(
                         modifier = Modifier.padding(16.dp).width(75.dp),
                         selectedIndex = selectedRequestType,
                         onClick = {
-                            if (selectedRequestType.intValue == 0) {
-                                userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
-                                    RequestType.GET
-                            }
-                            else if (selectedRequestType.intValue == 1) {
-                                userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
-                                    RequestType.POST
-                            }
-                            else if (selectedRequestType.intValue == 2) {
-                                userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
-                                    RequestType.DELETE
-                            }
-                            else if (selectedRequestType.intValue == 3) {
-                                userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
-                                    RequestType.PUT
+                            when (selectedRequestType.intValue) {
+                                0 -> {
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
+                                        RequestType.GET
+                                }
+                                1 -> {
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
+                                        RequestType.POST
+                                }
+                                2 -> {
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
+                                        RequestType.DELETE
+                                }
+                                3 -> {
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].requestType =
+                                        RequestType.PUT
+                                }
                             }
                         }
                     )
@@ -186,6 +195,32 @@ fun Home(
                                     Icon(Icons.Default.Add, contentDescription = "More options")
                                 }
                             }
+                        }
+                    }
+                }
+                val resonseResult = remember {mutableStateOf("")}
+                IconButton(onClick = {
+                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].execute {
+                        Log.d("Home", it.toString())
+                        resonseResult.value = it.toString() + "\n" + it.body.string()
+                    }
+                }) {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Run")
+                }
+                if (resonseResult.value.isNotEmpty()) {
+                    LabeledBox(label = {
+                        Text(text = "Response",
+                            modifier = Modifier.background(MaterialTheme.colorScheme.primary)
+                                .padding(16.dp).fillMaxWidth()
+                        )
+
+                    }) {
+                        Column(
+                            modifier = Modifier
+                                .verticalScroll(rememberScrollState())
+                                .weight(1f, false)
+                        ) {
+                            Text(resonseResult.value)
                         }
                     }
                 }
