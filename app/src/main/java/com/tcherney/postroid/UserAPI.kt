@@ -3,6 +3,8 @@ package com.tcherney.postroid
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Headers
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -11,8 +13,8 @@ import okio.IOException
 
 private val client = OkHttpClient()
 class UserAPI(val endPoint: String = "",
-    val headers: List<Pair<String,String>> = listOf(),
-    val params: List<Pair<String,String>> = listOf(),
+    val headers: ArrayList<Pair<String,String>> = arrayListOf(),
+    val params: ArrayList<Pair<String,String>> = arrayListOf(),
     val bodyContent: String = "",
     var requestType: RequestType = RequestType.GET){
     fun execute(onCompletion: (Response) -> Unit) {
@@ -22,8 +24,12 @@ class UserAPI(val endPoint: String = "",
         }
         //TODO add mutable to let ui know request is done
         if (requestType == RequestType.GET) {
+            val httpUrl = endPoint.toHttpUrlOrNull()?.newBuilder()
+            for (p in params) {
+                httpUrl?.addQueryParameter(p.first, p.second)
+            }
             val request = Request.Builder()
-                .url(endPoint)
+                .url(httpUrl!!.build())
                 .headers(headersBuilder.build())
                 .build()
 
