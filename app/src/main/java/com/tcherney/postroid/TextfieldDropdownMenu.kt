@@ -1,7 +1,10 @@
 package com.tcherney.postroid
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -23,37 +26,41 @@ import androidx.compose.ui.unit.Dp
 @Composable
 fun TextfieldDropdownMenu(value: MutableState<String>, selectedIndex: MutableIntState, menuOptions: SnapshotStateList<String>, placeHolderText: String, padding: Dp, modifier: Modifier = Modifier, newLabel: String = "New", onClick: (Int) -> Unit = {}) {
     val expanded = remember{ mutableStateOf(false) }
-    TextField(
-        value = value.value,
-        onValueChange = { value.value = it },
-        modifier = modifier.fillMaxWidth().padding(start = padding, top = padding, bottom = padding),
-        placeholder = { Text(placeHolderText) }
-    )
-    IconButton(onClick = { expanded.value = !expanded.value }) {
-        Icon(Icons.Default.ArrowDropDown, contentDescription = "More options")
-    }
-    DropdownMenu(
-        expanded = expanded.value,
-        onDismissRequest = { expanded.value = false }
-    ) {
-        menuOptions.forEachIndexed { i, label ->
-            if (i != selectedIndex.intValue) {
-                DropdownMenuItem(
-                    text = { Text(label) },
-                    onClick = {
-                        onClick(i)
-                        expanded.value = false
-                    }
-                )
+    Column(modifier = Modifier.padding(start = padding, top = padding)) {
+        Row {
+            TextField(
+                value = value.value,
+                onValueChange = { value.value = it },
+                modifier = modifier.fillMaxWidth(),
+                placeholder = { Text(placeHolderText) }
+            )
+            IconButton(onClick = { expanded.value = !expanded.value }) {
+                Icon(Icons.Default.ArrowDropDown, contentDescription = "More options")
             }
         }
-        DropdownMenuItem(
-            text = { Text(newLabel) },
-            onClick = {
-                onClick(menuOptions.size)
-                expanded.value = false
-
+        DropdownMenu(
+            expanded = expanded.value,
+            onDismissRequest = { expanded.value = false },
+        ) {
+            menuOptions.forEachIndexed { i, label ->
+                if (i != selectedIndex.intValue) {
+                    DropdownMenuItem(
+                        text = { Text(label) },
+                        onClick = {
+                            onClick(i)
+                            expanded.value = false
+                        }
+                    )
+                }
             }
-        )
+            DropdownMenuItem(
+                text = { Text(newLabel) },
+                onClick = {
+                    onClick(menuOptions.size)
+                    expanded.value = false
+
+                }
+            )
+        }
     }
 }
