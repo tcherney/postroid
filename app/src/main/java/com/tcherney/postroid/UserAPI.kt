@@ -1,5 +1,12 @@
 package com.tcherney.postroid
 
+import androidx.room.ColumnInfo
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Headers
@@ -12,11 +19,14 @@ import okhttp3.Response
 import okio.IOException
 
 private val client = OkHttpClient()
-class UserAPI(val endPoint: String = "",
-    val headers: ArrayList<Pair<String,String>> = arrayListOf(),
-    val params: ArrayList<Pair<String,String>> = arrayListOf(),
-    val bodyContent: String = "",
-    var requestType: RequestType = RequestType.GET){
+@Entity(tableName = "user_api")
+class UserAPI(
+    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
+    @ColumnInfo(name = "endpoint") val endPoint: String = "",
+    @ColumnInfo(name = "headers") val headers: ArrayList<Pair<String,String>> = arrayListOf(),
+    @ColumnInfo(name = "params") val params: ArrayList<Pair<String,String>> = arrayListOf(),
+    @ColumnInfo(name = "body_content") val bodyContent: String = "",
+    @ColumnInfo(name = "request_type") var requestType: RequestType = RequestType.GET){
     fun execute(onCompletion: (Response) -> Unit) {
         val headersBuilder = Headers.Builder()
         for (h in headers) {
@@ -67,4 +77,19 @@ class UserAPI(val endPoint: String = "",
             })
         }
     }
+}
+
+@Dao
+interface UserAPIDao {
+    @Query("SELECT * FROM user_api")
+    fun getAll(): List<UserAPI>
+
+    @Query("SELECT * FROM user_api WHERE uid IN (:userIds)")
+    fun loadAllByIds(userIds: IntArray): List<UserAPI>
+
+    @Insert
+    fun insertAll(vararg userAPIs: UserAPI)
+
+    @Delete
+    fun delete(userAPI: UserAPI)
 }
