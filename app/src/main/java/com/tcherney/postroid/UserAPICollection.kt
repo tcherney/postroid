@@ -18,10 +18,10 @@ class UserAPICollection(
 @Dao
 interface UserAPICollectionDao {
     @Query("SELECT * FROM user_api_collection")
-    fun getAll(): List<UserAPI>
+    fun getAll(): List<UserAPICollection>
 
     @Query("SELECT * FROM user_api_collection WHERE uid IN (:userIds)")
-    fun loadAllByIds(userIds: IntArray): List<UserAPI>
+    fun loadAllByIds(userIds: IntArray): List<UserAPICollection>
 
     @Insert
     fun insertAll(vararg userAPICollections: UserAPICollection)

@@ -142,20 +142,18 @@ fun Home(
                     ) {
                         val newHeaderKey = remember { mutableStateOf("") }
                         val newHeaderValue = remember { mutableStateOf("") }
-                        val headers = remember { mutableStateListOf<Pair<String,String>>()}
                         val newParamKey = remember { mutableStateOf("") }
                         val newParamValue = remember { mutableStateOf("") }
-                        val params = remember { mutableStateListOf<Pair<String,String>>()}
                         val bodyContent = remember {mutableStateOf("")}
 
                         if (contentTitles[selectedContentIndex.intValue] == RequestContent.HEADERS.value) {
-                            headers.forEach {
+                            userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].headers.forEach {
                                 Row(
                                     horizontalArrangement = Arrangement.SpaceEvenly,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(it.first, color = Color.LightGray)
-                                    Text(it.second)
+                                    Text(it.key, color = Color.LightGray)
+                                    Text(it.value)
                                 }
                             }
                             Row(
@@ -175,7 +173,7 @@ fun Home(
                                     placeholder = { Text("Value") }
                                 )
                                 IconButton(onClick = {
-                                    headers.add(Pair(newHeaderKey.value, newHeaderValue.value))
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].headers.put(newHeaderKey.value, newHeaderValue.value)
                                     newHeaderKey.value = ""
                                     newHeaderValue.value = ""
                                 }) {
@@ -194,13 +192,13 @@ fun Home(
                             }
                         }
                         else if (contentTitles[selectedContentIndex.intValue] == RequestContent.PARAMS.value) {
-                            params.forEach {
+                            userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].params.entries.forEach {
                                 Row(
                                     horizontalArrangement = Arrangement.SpaceEvenly,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(it.first, color = Color.LightGray)
-                                    Text(it.second)
+                                    Text(it.key, color = Color.LightGray)
+                                    Text(it.value)
                                 }
                             }
                             Row(
@@ -220,7 +218,7 @@ fun Home(
                                     placeholder = { Text("Value") }
                                 )
                                 IconButton(onClick = {
-                                    params.add(Pair(newParamKey.value, newParamValue.value))
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].params.put(newParamKey.value, newParamValue.value)
                                     newParamKey.value = ""
                                     newParamValue.value = ""
                                 }) {

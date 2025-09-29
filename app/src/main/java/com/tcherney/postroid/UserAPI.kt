@@ -1,5 +1,6 @@
 package com.tcherney.postroid
 
+import androidx.collection.SimpleArrayMap
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Delete
@@ -23,20 +24,21 @@ private val client = OkHttpClient()
 class UserAPI(
     @PrimaryKey(autoGenerate = true) val uid: Int = 0,
     @ColumnInfo(name = "endpoint") val endPoint: String = "",
-    @ColumnInfo(name = "headers") val headers: ArrayList<Pair<String,String>> = arrayListOf(),
-    @ColumnInfo(name = "params") val params: ArrayList<Pair<String,String>> = arrayListOf(),
+    //TODO we need retofit to serialize this as json before storing
+    @ColumnInfo(name = "headers") val headers: HashMap<String,String> = hashMapOf(),
+    @ColumnInfo(name = "params") val params: HashMap<String,String> = hashMapOf(),
     @ColumnInfo(name = "body_content") val bodyContent: String = "",
     @ColumnInfo(name = "request_type") var requestType: RequestType = RequestType.GET){
     fun execute(onCompletion: (Response) -> Unit) {
         val headersBuilder = Headers.Builder()
-        for (h in headers) {
-            headersBuilder.add(h.first,h.second)
+        for (h in headers.entries) {
+            headersBuilder.add(h.key,h.value)
         }
         //TODO add mutable to let ui know request is done
         if (requestType == RequestType.GET) {
             val httpUrl = endPoint.toHttpUrlOrNull()?.newBuilder()
-            for (p in params) {
-                httpUrl?.addQueryParameter(p.first, p.second)
+            for (p in params.entries) {
+                httpUrl?.addQueryParameter(p.key, p.value)
             }
             val request = Request.Builder()
                 .url(httpUrl!!.build())
