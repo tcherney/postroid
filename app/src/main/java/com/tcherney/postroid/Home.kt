@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.tcherney.postroid.ui.theme.PostroidTheme
@@ -40,14 +41,14 @@ enum class RequestContent(val value: String) {
 }
 
 @Composable
-fun Home(
+fun Home(userAPIViewModel: UserAPIViewModel,
     modifier: Modifier = Modifier, navController: NavHostController? = null
 ) {
     PostroidTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                 //TODO figure out how we want these to look
-                //TODO add endpoint adding
+                //TODO replace with dao call
                 val userAPICollections = remember { mutableStateListOf(UserAPICollection(
                     userAPIs = arrayListOf(UserAPI(
                         endPoint = "https://world.openfoodfacts.net/api/v2/product/788434115681",
@@ -55,9 +56,9 @@ fun Home(
                 ))}
                 val responseResult = remember {mutableStateOf("")}
                 val selectedCollectionIndex = remember{mutableIntStateOf(0)}
-                val collectionName = remember {mutableStateOf(userAPICollections[selectedCollectionIndex.intValue].collectionName)}
+                val collectionName = remember {mutableStateOf(userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName)}
                 val collectionNames = remember{userAPICollections.map {
-                    it.collectionName
+                    it.internalCollection!!.collectionName
                 }.toMutableStateList()}
                 val selectedEndpointIndex = remember{mutableIntStateOf(0)}
                 val endPoint = remember {mutableStateOf(userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint)}
@@ -68,18 +69,19 @@ fun Home(
                     TextfieldDropdownMenu(collectionName, selectedCollectionIndex,collectionNames, "Collection", 16.dp, Modifier.weight(1f), onClick = {
                         responseResult.value = ""
                         if (it >= userAPICollections.size) {
+                            //TODO replace with dao call
                             userAPICollections.add(UserAPICollection())
                             selectedCollectionIndex.intValue = it
                             collectionNames.add(
                                 index = selectedCollectionIndex.intValue,
-                                element = userAPICollections[selectedCollectionIndex.intValue].collectionName
+                                element = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
                             )
                         }
                         else {
                             selectedCollectionIndex.intValue = it
                         }
                         selectedEndpointIndex.intValue = 0
-                        collectionName.value = userAPICollections[selectedCollectionIndex.intValue].collectionName
+                        collectionName.value = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
                         endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
                     })
                 }
@@ -114,6 +116,7 @@ fun Home(
                     TextfieldDropdownMenu(endPoint, selectedEndpointIndex, endpointNames, "Endpoint", 16.dp, Modifier.weight(1f), onClick = {
                         responseResult.value = ""
                         if (it >= userAPICollections[selectedCollectionIndex.intValue].userAPIs.size) {
+                            //TODO replace with dao call
                             userAPICollections[selectedCollectionIndex.intValue].userAPIs.add(UserAPI())
                             Log.d("Home", userAPICollections[selectedCollectionIndex.intValue].userAPIs.toString())
                             selectedEndpointIndex.intValue = it

@@ -21,10 +21,10 @@ import okio.IOException
 
 private val client = OkHttpClient()
 @Entity(tableName = "user_api")
-class UserAPI(
-    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
+data class UserAPI(
+    @PrimaryKey(autoGenerate = true) val apiID: Long = 0,
+    @ColumnInfo(name = "collectionID") val collectionID: Long = 0,
     @ColumnInfo(name = "endpoint") val endPoint: String = "",
-    //TODO we need retofit to serialize this as json before storing
     @ColumnInfo(name = "headers") val headers: HashMap<String,String> = hashMapOf(),
     @ColumnInfo(name = "params") val params: HashMap<String,String> = hashMapOf(),
     @ColumnInfo(name = "body_content") val bodyContent: String = "",
@@ -86,7 +86,7 @@ interface UserAPIDao {
     @Query("SELECT * FROM user_api")
     fun getAll(): List<UserAPI>
 
-    @Query("SELECT * FROM user_api WHERE uid IN (:userIds)")
+    @Query("SELECT * FROM user_api WHERE apiID IN (:userIds)")
     fun loadAllByIds(userIds: IntArray): List<UserAPI>
 
     @Insert

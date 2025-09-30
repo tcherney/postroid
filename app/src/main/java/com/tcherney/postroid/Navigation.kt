@@ -15,15 +15,12 @@ enum class Routes(val value: String) {
 
 
 @Composable
-fun Navigation(modifier: Modifier = Modifier) {
+fun Navigation(userAPIViewModel: UserAPIViewModel, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    val db = Room.databaseBuilder(
-        LocalContext.current,
-        AppDatabase::class.java, "database-name"
-    ).build()
     NavHost(navController = navController, startDestination = Routes.HOME.value) {
         composable(route = Routes.HOME.value) {
             Home(
+                userAPIViewModel = userAPIViewModel,
                 modifier = modifier,
                 navController = navController
             )

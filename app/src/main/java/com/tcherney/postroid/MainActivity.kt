@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.tcherney.postroid.ui.theme.PostroidTheme
 
@@ -17,8 +18,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val db = DatabaseProvider.getDatabase(applicationContext)
+        val apiDao = db.userAPICollectionDao()
+        val userAPIViewModel = UserAPIViewModel(apiDao)
         setContent {
-            Navigation()
+            Navigation(userAPIViewModel)
         }
     }
 }
