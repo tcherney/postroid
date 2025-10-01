@@ -8,6 +8,8 @@ import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Update
+import androidx.room.Upsert
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Headers
@@ -22,8 +24,8 @@ import okio.IOException
 private val client = OkHttpClient()
 @Entity(tableName = "user_api")
 data class UserAPI(
-    @PrimaryKey(autoGenerate = true) val apiID: Long = 0,
-    @ColumnInfo(name = "collectionID") val collectionID: Long = 0,
+    @PrimaryKey(autoGenerate = true) var apiID: Long = 0,
+    @ColumnInfo(name = "collectionID") var collectionID: Long = 0,
     @ColumnInfo(name = "endpoint") val endPoint: String = "",
     @ColumnInfo(name = "headers") val headers: HashMap<String,String> = hashMapOf(),
     @ColumnInfo(name = "params") val params: HashMap<String,String> = hashMapOf(),
@@ -87,11 +89,17 @@ interface UserAPIDao {
     fun getAll(): List<UserAPI>
 
     @Query("SELECT * FROM user_api WHERE apiID IN (:userIds)")
-    fun loadAllByIds(userIds: IntArray): List<UserAPI>
+    suspend fun loadAllByIds(userIds: IntArray): List<UserAPI>
 
     @Insert
-    fun insertAll(vararg userAPIs: UserAPI)
+    suspend fun insertAll(vararg userAPIs: UserAPI): List<Long>
+
+    @Upsert
+    suspend fun upsertAPI(userAPI: UserAPI): Long
+
+    @Update
+    suspend fun updateUserAPI(vararg userAPIs: UserAPI)
 
     @Delete
-    fun delete(userAPI: UserAPI)
+    suspend fun delete(userAPI: UserAPI)
 }

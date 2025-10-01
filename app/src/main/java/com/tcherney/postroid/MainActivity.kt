@@ -19,8 +19,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val db = DatabaseProvider.getDatabase(applicationContext)
-        val apiDao = db.userAPICollectionDao()
-        val userAPIViewModel = UserAPIViewModel(apiDao)
+        val apiDao = db.userAPIDao()
+        val collectionDao = db.userAPICollectionDao()
+        val userAPIViewModel = UserAPIViewModel(collectionDao,apiDao)
         setContent {
             Navigation(userAPIViewModel)
         }

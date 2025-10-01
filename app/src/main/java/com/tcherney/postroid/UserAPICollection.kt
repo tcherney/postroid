@@ -11,6 +11,8 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Relation
 import androidx.room.Transaction
+import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 //
@@ -36,7 +38,7 @@ data class UserAPICollection(
 
 @Entity(tableName = "user_api_collection")
 data class UserAPICollectionInternal(
-    @PrimaryKey(autoGenerate = true) val collectionID: Long = 0,
+    @PrimaryKey(autoGenerate = true) var collectionID: Long = 0,
     @ColumnInfo(name = "collection_name") val collectionName: String = "Untitled",
 )
 
@@ -55,11 +57,17 @@ interface UserAPICollectionDao {
 
     @Transaction
     @Query("SELECT * FROM user_api_collection WHERE collectionID IN (:userIds)")
-    fun loadAllByIds(userIds: IntArray): Flow<List<UserAPICollection>>
+    suspend fun loadAllByIds(userIds: IntArray): Flow<List<UserAPICollection>>
 
     @Insert
-    fun insertAll(vararg userAPICollections: UserAPICollectionInternal)
+    suspend fun insertAll(vararg userAPICollections: UserAPICollectionInternal): List<Long>
+
+    @Upsert
+    suspend fun upsertAPI(userAPICollection: UserAPICollectionInternal): Long
 
     @Delete
-    fun delete(userAPICollection: UserAPICollectionInternal)
+    suspend fun delete(userAPICollection: UserAPICollectionInternal)
+
+    @Update
+    suspend fun updateUserAPI(vararg userAPICollections: UserAPICollectionInternal)
 }
