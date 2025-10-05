@@ -21,6 +21,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,13 +50,17 @@ fun Home(userAPIViewModel: UserAPIViewModel,
     PostroidTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                //TODO figure out how we want these to look
-                //TODO replace with dao call
-                val userAPICollections = remember { mutableStateListOf(UserAPICollection(
-                    userAPIs = arrayListOf(UserAPI(
-                        endPoint = "https://world.openfoodfacts.net/api/v2/product/788434115681",
-                    ))
-                ))}
+                //example "https://world.openfoodfacts.net/api/v2/product/788434115681"
+                val userAPICollections by userAPIViewModel.userAPIs.collectAsState(initial = listOf(
+                    UserAPICollection(
+                        internalCollection = UserAPICollectionInternal(
+                            collectionName = "Loading"
+                        ),
+                        userAPIs = listOf(UserAPI(
+                            endPoint = "Loading"
+                        ))
+                    )
+                ))
                 val responseResult = remember {mutableStateOf("")}
                 val selectedCollectionIndex = remember{mutableIntStateOf(0)}
                 val collectionName = remember {mutableStateOf(userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName)}
@@ -65,12 +72,28 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                 val endpointNames = remember{userAPICollections[selectedCollectionIndex.intValue].userAPIs.map {
                     it.endPoint
                 }.toMutableStateList()}
+                LaunchedEffect(userAPICollections) {
+                    collectionName.value = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
+                    endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
+                }
+                //TODO this adds an entry, fix so we dont need to run this
+//                if(userAPICollections.isEmpty()) {
+//                    userAPIViewModel.addAPICollection(UserAPICollection(
+//                        internalCollection = UserAPICollectionInternal(
+//                            collectionName = "Untitled",
+//                            collectionID = 1
+//                        ),
+//                        userAPIs = listOf(UserAPI(endPoint = "", collectionID = 1))
+//                    )
+//                    )
+//                }
                 Row {
                     TextfieldDropdownMenu(collectionName, selectedCollectionIndex,collectionNames, "Collection", 16.dp, Modifier.weight(1f), onClick = {
                         responseResult.value = ""
                         if (it >= userAPICollections.size) {
-                            //TODO replace with dao call
-                            userAPICollections.add(UserAPICollection())
+                            //TODO this needs to be fixed look at onfocus
+                            //userAPICollections.add(UserAPICollection())
+                            userAPIViewModel.addAPICollection(UserAPICollection())
                             selectedCollectionIndex.intValue = it
                             collectionNames.add(
                                 index = selectedCollectionIndex.intValue,
@@ -83,7 +106,17 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                         selectedEndpointIndex.intValue = 0
                         collectionName.value = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
                         endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
-                    })
+                    },
+                        onFocusLost = {
+                            if (userAPICollections.isNotEmpty()) {
+                                Log.d("Home", "Updating $userAPICollections")
+                                userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName = collectionName.value
+                                userAPIViewModel.updateCollection(userAPICollections[selectedCollectionIndex.intValue])
+                            }
+                            else {
+                                Log.d("Home", "Cant update empty")
+                            }
+                        })
                 }
 
                 Row(horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -116,8 +149,9 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                     TextfieldDropdownMenu(endPoint, selectedEndpointIndex, endpointNames, "Endpoint", 16.dp, Modifier.weight(1f), onClick = {
                         responseResult.value = ""
                         if (it >= userAPICollections[selectedCollectionIndex.intValue].userAPIs.size) {
-                            //TODO replace with dao call
-                            userAPICollections[selectedCollectionIndex.intValue].userAPIs.add(UserAPI())
+                            //TODO this needs to be fixed look at onfocus
+                            //userAPICollections[selectedCollectionIndex.intValue].userAPIs.add(UserAPI())
+                            userAPIViewModel.addAPI(userAPICollections[selectedCollectionIndex.intValue])
                             Log.d("Home", userAPICollections[selectedCollectionIndex.intValue].userAPIs.toString())
                             selectedEndpointIndex.intValue = it
                             endpointNames.add(
@@ -129,7 +163,27 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                             selectedEndpointIndex.intValue = it
                         }
                         endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
-                    })
+                    },
+                        onFocusLost = {
+                            if (userAPICollections.isNotEmpty()) {
+                                Log.d("Home", "Updating $userAPICollections")
+                                if (userAPICollections[selectedCollectionIndex.intValue].userAPIs.isEmpty()) {
+                                    userAPIViewModel.updateCollectionWithAPI(
+                                        userAPICollections[selectedCollectionIndex.intValue],
+                                        UserAPI(
+                                            endPoint = endPoint.value,
+                                            collectionID = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionID
+                                        )
+                                    )
+                                } else {
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint = endPoint.value
+                                    userAPIViewModel.updateCollection(userAPICollections[selectedCollectionIndex.intValue])
+                            }
+                            }
+                            else {
+                                Log.d("Home", "Cant update empty")
+                            }
+                        })
                 }
                 val selectedContentIndex = remember { mutableIntStateOf(0) }
                 val contentTitles = listOf(RequestContent.HEADERS.value, RequestContent.BODY.value, RequestContent.PARAMS.value)
@@ -150,13 +204,17 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                         val bodyContent = remember {mutableStateOf("")}
 
                         if (contentTitles[selectedContentIndex.intValue] == RequestContent.HEADERS.value) {
-                            userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].headers.forEach {
-                                Row(
-                                    horizontalArrangement = Arrangement.SpaceEvenly,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(it.key, color = Color.LightGray)
-                                    Text(it.value)
+                            if (userAPICollections.isNotEmpty()) {
+                                if (userAPICollections[selectedCollectionIndex.intValue].userAPIs.isNotEmpty()) {
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].headers.forEach {
+                                        Row(
+                                            horizontalArrangement = Arrangement.SpaceEvenly,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(it.key, color = Color.LightGray)
+                                            Text(it.value)
+                                        }
+                                    }
                                 }
                             }
                             Row(
@@ -195,13 +253,17 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                             }
                         }
                         else if (contentTitles[selectedContentIndex.intValue] == RequestContent.PARAMS.value) {
-                            userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].params.entries.forEach {
-                                Row(
-                                    horizontalArrangement = Arrangement.SpaceEvenly,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(it.key, color = Color.LightGray)
-                                    Text(it.value)
+                            if(userAPICollections.isNotEmpty() and userAPICollections[selectedCollectionIndex.intValue].userAPIs.isNotEmpty()) {
+                                if (userAPICollections[selectedCollectionIndex.intValue].userAPIs.isNotEmpty()) {
+                                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].params.entries.forEach {
+                                        Row(
+                                            horizontalArrangement = Arrangement.SpaceEvenly,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(it.key, color = Color.LightGray)
+                                            Text(it.value)
+                                        }
+                                    }
                                 }
                             }
                             Row(
@@ -232,9 +294,11 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                     }
                 }
                 IconButton(onClick = {
-                    userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].execute {
-                        Log.d("Home", it.toString())
-                        responseResult.value = it.toString() + "\n" + it.body.string()
+                    if(userAPICollections.isNotEmpty()) {
+                        userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].execute {
+                            Log.d("Home", it.toString())
+                            responseResult.value = it.toString() + "\n" + it.body.string()
+                        }
                     }
                 }) {
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Run")

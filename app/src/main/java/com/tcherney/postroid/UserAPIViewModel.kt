@@ -7,23 +7,28 @@ import kotlinx.coroutines.launch
 
 open class UserAPIViewModel(private val collectionDao: UserAPICollectionDao, private val apiDao: UserAPIDao) : ViewModel() {
     val userAPIs: Flow<List<UserAPICollection>> = collectionDao.getAll()
-    fun addAPI(userAPICollection: UserAPICollection) {
+    fun addAPICollection(userAPICollection: UserAPICollection) {
         viewModelScope.launch {
-            val newID = collectionDao.insertAll(userAPICollection.internalCollection!!)
-            userAPICollection.internalCollection.collectionID = newID[0]
-            userAPICollection.userAPIs.forEach {
-                val newAPIID = apiDao.insertAll(it)
-                it.collectionID = newID[0]
-                it.apiID = newAPIID[0]
-            }
+            collectionDao.insertParentAndChild(userAPICollection.internalCollection!!, userAPICollection.userAPIs[0])
         }
     }
 
-    fun updateAPI(userAPICollection: UserAPICollection) {
+    fun addAPI(userAPICollection: UserAPICollection) {
         viewModelScope.launch {
+            apiDao.upsertAPI(UserAPI(collectionID = userAPICollection.internalCollection!!.collectionID))
+        }
+    }
+    fun updateCollectionWithAPI(userAPICollection: UserAPICollection, userAPI: UserAPI) {
+        viewModelScope.launch {
+            collectionDao.upsertAPI(userAPICollection.internalCollection!!)
+            apiDao.upsertAPI(userAPI)
+        }
+    }
+    fun updateCollection(userAPICollection: UserAPICollection) {
+        viewModelScope.launch {
+            collectionDao.upsertAPI(userAPICollection.internalCollection!!)
             userAPICollection.userAPIs.forEach {
-                it.apiID = apiDao.upsertAPI(it)
-                it.collectionID = userAPICollection.internalCollection!!.collectionID
+                apiDao.upsertAPI(it)
             }
         }
     }

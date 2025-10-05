@@ -5,6 +5,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Insert
 import androidx.room.PrimaryKey
 import androidx.room.Query
@@ -22,11 +23,20 @@ import okhttp3.Response
 import okio.IOException
 
 private val client = OkHttpClient()
-@Entity(tableName = "user_api")
+@Entity(tableName = "user_api",
+        foreignKeys = [
+            ForeignKey(
+                entity = UserAPICollectionInternal::class,
+                parentColumns = arrayOf("collection_id"),
+                childColumns = arrayOf("collection_id"),
+                onUpdate = ForeignKey.CASCADE,
+                onDelete = ForeignKey.CASCADE,
+            )
+        ])
 data class UserAPI(
-    @PrimaryKey(autoGenerate = true) var apiID: Long = 0,
-    @ColumnInfo(name = "collectionID") var collectionID: Long = 0,
-    @ColumnInfo(name = "endpoint") val endPoint: String = "",
+    @PrimaryKey(autoGenerate = true)@ColumnInfo(name = "api_id") var apiID: Long = 0,
+    @ColumnInfo(name = "collection_id") var collectionID: Long = 0,
+    @ColumnInfo(name = "endpoint") var endPoint: String = "",
     @ColumnInfo(name = "headers") val headers: HashMap<String,String> = hashMapOf(),
     @ColumnInfo(name = "params") val params: HashMap<String,String> = hashMapOf(),
     @ColumnInfo(name = "body_content") val bodyContent: String = "",
@@ -88,14 +98,14 @@ interface UserAPIDao {
     @Query("SELECT * FROM user_api")
     fun getAll(): List<UserAPI>
 
-    @Query("SELECT * FROM user_api WHERE apiID IN (:userIds)")
-    suspend fun loadAllByIds(userIds: IntArray): List<UserAPI>
+    @Query("SELECT * FROM user_api WHERE api_id IN (:userIds)")
+    fun loadAllByIds(userIds: IntArray): List<UserAPI>
 
     @Insert
-    suspend fun insertAll(vararg userAPIs: UserAPI): List<Long>
+    suspend fun insertAll(vararg userAPIs: UserAPI)
 
     @Upsert
-    suspend fun upsertAPI(userAPI: UserAPI): Long
+    suspend fun upsertAPI(userAPI: UserAPI)
 
     @Update
     suspend fun updateUserAPI(vararg userAPIs: UserAPI)

@@ -21,17 +21,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.Dp
 
 @Composable
-fun TextfieldDropdownMenu(value: MutableState<String>, selectedIndex: MutableIntState, menuOptions: SnapshotStateList<String>, placeHolderText: String, padding: Dp, modifier: Modifier = Modifier, newLabel: String = "New", onClick: (Int) -> Unit = {}) {
+fun TextfieldDropdownMenu(value: MutableState<String>, selectedIndex: MutableIntState, menuOptions: SnapshotStateList<String>, placeHolderText: String, padding: Dp, modifier: Modifier = Modifier, newLabel: String = "New", onClick: (Int) -> Unit = {}, onFocusLost: () -> Unit = {}) {
     val expanded = remember{ mutableStateOf(false) }
     Column(modifier = Modifier.padding(start = padding, top = padding)) {
         Row {
             TextField(
                 value = value.value,
                 onValueChange = { value.value = it },
-                modifier = modifier.fillMaxWidth(),
+                modifier = modifier.fillMaxWidth().onFocusChanged {
+                    if (it.hasFocus) {
+                        onFocusLost()
+                    }
+                },
                 placeholder = { Text(placeHolderText) }
             )
             IconButton(onClick = { expanded.value = !expanded.value }) {
