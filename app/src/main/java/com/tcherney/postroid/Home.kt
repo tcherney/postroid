@@ -61,6 +61,8 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                         ))
                     )
                 ))
+                val collectionAdded = remember { mutableStateOf(false) }
+                val endpointAdded = remember { mutableStateOf(false) }
                 val responseResult = remember {mutableStateOf("")}
                 val selectedCollectionIndex = remember{mutableIntStateOf(0)}
                 val collectionName = remember {mutableStateOf(userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName)}
@@ -73,8 +75,51 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                     it.endPoint
                 }.toMutableStateList()}
                 LaunchedEffect(userAPICollections) {
-                    collectionName.value = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
-                    endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
+                    Log.d("Home", "Updated $collectionAdded $userAPICollections")
+                    if (userAPICollections.isEmpty()) {
+                        collectionAdded.value = true
+                        userAPIViewModel.addAPICollection(UserAPICollection(
+                            internalCollection = UserAPICollectionInternal()
+                        ))
+                    }
+                    else {
+                        if (collectionAdded.value) {
+                            Log.d("Home", "Wait what")
+                            selectedCollectionIndex.intValue = userAPICollections.size - 1
+                            collectionAdded.value = false
+                        }
+                        if (endpointAdded.value) {
+                            selectedEndpointIndex.intValue =
+                                userAPICollections[selectedCollectionIndex.intValue].userAPIs.size - 1
+                            endpointAdded.value = false
+                        }
+                        Log.d("Home", "Before $collectionNames")
+                        collectionNames.clear()
+                        collectionNames.addAll(userAPICollections.map {
+                            it.internalCollection!!.collectionName
+                        })
+                        if (userAPICollections.isNotEmpty()) {
+                            endpointNames.clear()
+                            endpointNames.addAll(userAPICollections[selectedCollectionIndex.intValue].userAPIs.map {
+                                it.endPoint
+                            })
+                        }
+                        Log.d("Home", "After $collectionNames")
+                        if (userAPICollections.isNotEmpty()) {
+                            if (collectionName.value != userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName) {
+                                collectionName.value =
+                                    userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
+                            }
+                        }
+                        if (userAPICollections.isNotEmpty()) {
+                            if (userAPICollections[selectedCollectionIndex.intValue].userAPIs.isNotEmpty()) {
+                                if (endPoint.value != userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint) {
+                                    endPoint.value =
+                                        userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
+                                }
+                            }
+                        }
+                    }
                 }
                 //TODO this adds an entry, fix so we dont need to run this
 //                if(userAPICollections.isEmpty()) {
@@ -91,25 +136,22 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                     TextfieldDropdownMenu(collectionName, selectedCollectionIndex,collectionNames, "Collection", 16.dp, Modifier.weight(1f), onClick = {
                         responseResult.value = ""
                         if (it >= userAPICollections.size) {
-                            //TODO this needs to be fixed look at onfocus
-                            //userAPICollections.add(UserAPICollection())
-                            userAPIViewModel.addAPICollection(UserAPICollection())
-                            selectedCollectionIndex.intValue = it
-                            collectionNames.add(
-                                index = selectedCollectionIndex.intValue,
-                                element = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
-                            )
+                            collectionAdded.value = true
+                            userAPIViewModel.addAPICollection(UserAPICollection(
+                                internalCollection = UserAPICollectionInternal()
+                            ))
                         }
                         else {
+                            Log.d("Home", "Updating indx $selectedCollectionIndex, $it")
                             selectedCollectionIndex.intValue = it
+                            collectionName.value = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
+                            endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
                         }
                         selectedEndpointIndex.intValue = 0
-                        collectionName.value = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
-                        endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
                     },
                         onFocusLost = {
                             if (userAPICollections.isNotEmpty()) {
-                                Log.d("Home", "Updating $userAPICollections")
+                                Log.d("Home", "Updating $userAPICollections, $collectionName")
                                 userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName = collectionName.value
                                 userAPIViewModel.updateCollection(userAPICollections[selectedCollectionIndex.intValue])
                             }
@@ -144,25 +186,19 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                                         RequestType.PUT
                                 }
                             }
+                            userAPIViewModel.updateCollection(userAPICollections[selectedCollectionIndex.intValue])
                         }
                     )
                     TextfieldDropdownMenu(endPoint, selectedEndpointIndex, endpointNames, "Endpoint", 16.dp, Modifier.weight(1f), onClick = {
                         responseResult.value = ""
                         if (it >= userAPICollections[selectedCollectionIndex.intValue].userAPIs.size) {
-                            //TODO this needs to be fixed look at onfocus
-                            //userAPICollections[selectedCollectionIndex.intValue].userAPIs.add(UserAPI())
+                            endpointAdded.value = true
                             userAPIViewModel.addAPI(userAPICollections[selectedCollectionIndex.intValue])
-                            Log.d("Home", userAPICollections[selectedCollectionIndex.intValue].userAPIs.toString())
-                            selectedEndpointIndex.intValue = it
-                            endpointNames.add(
-                                index = selectedEndpointIndex.intValue,
-                                element = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
-                            )
                         }
                         else {
                             selectedEndpointIndex.intValue = it
+                            endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
                         }
-                        endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
                     },
                         onFocusLost = {
                             if (userAPICollections.isNotEmpty()) {
@@ -237,6 +273,7 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                                     userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].headers.put(newHeaderKey.value, newHeaderValue.value)
                                     newHeaderKey.value = ""
                                     newHeaderValue.value = ""
+                                    userAPIViewModel.updateCollection(userAPICollections[selectedCollectionIndex.intValue])
                                 }) {
                                     Icon(Icons.Default.Add, contentDescription = "More options")
                                 }
@@ -286,6 +323,7 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                                     userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].params.put(newParamKey.value, newParamValue.value)
                                     newParamKey.value = ""
                                     newParamValue.value = ""
+                                    userAPIViewModel.updateCollection(userAPICollections[selectedCollectionIndex.intValue])
                                 }) {
                                     Icon(Icons.Default.Add, contentDescription = "More options")
                                 }

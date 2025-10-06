@@ -64,15 +64,14 @@ interface UserAPICollectionDao {
     suspend fun insertAll(vararg userAPICollections: UserAPICollectionInternal)
 
     @Insert
-    suspend fun insertParent(userAPICollection: UserAPICollectionInternal)
+    suspend fun insertParent(userAPICollection: UserAPICollectionInternal): Long
 
     @Insert
     suspend fun insertChild(userAPI: UserAPI)
 
     @Transaction
     suspend fun insertParentAndChild(parent: UserAPICollectionInternal, child: UserAPI) {
-        insertParent(parent)
-        child.collectionID = parent.collectionID
+        child.collectionID = insertParent(parent)
         Log.d("UserAPICollection", "Where this " +child.collectionID.toString() + " " + parent.collectionID.toString())
         insertChild(child)
     }
