@@ -75,7 +75,7 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                     it.endPoint
                 }.toMutableStateList()}
                 LaunchedEffect(userAPICollections) {
-                    Log.d("Home", "Updated $collectionAdded $userAPICollections")
+                    Log.d("Home", "Updated $userAPICollections")
                     if (userAPICollections.isEmpty()) {
                         collectionAdded.value = true
                         userAPIViewModel.addAPICollection(UserAPICollection(
@@ -84,7 +84,6 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                     }
                     else {
                         if (collectionAdded.value) {
-                            Log.d("Home", "Wait what")
                             selectedCollectionIndex.intValue = userAPICollections.size - 1
                             collectionAdded.value = false
                         }
@@ -93,7 +92,6 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                                 userAPICollections[selectedCollectionIndex.intValue].userAPIs.size - 1
                             endpointAdded.value = false
                         }
-                        Log.d("Home", "Before $collectionNames")
                         collectionNames.clear()
                         collectionNames.addAll(userAPICollections.map {
                             it.internalCollection!!.collectionName
@@ -104,7 +102,6 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                                 it.endPoint
                             })
                         }
-                        Log.d("Home", "After $collectionNames")
                         if (userAPICollections.isNotEmpty()) {
                             if (collectionName.value != userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName) {
                                 collectionName.value =
@@ -121,17 +118,6 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                         }
                     }
                 }
-                //TODO this adds an entry, fix so we dont need to run this
-//                if(userAPICollections.isEmpty()) {
-//                    userAPIViewModel.addAPICollection(UserAPICollection(
-//                        internalCollection = UserAPICollectionInternal(
-//                            collectionName = "Untitled",
-//                            collectionID = 1
-//                        ),
-//                        userAPIs = listOf(UserAPI(endPoint = "", collectionID = 1))
-//                    )
-//                    )
-//                }
                 Row {
                     TextfieldDropdownMenu(collectionName, selectedCollectionIndex,collectionNames, "Collection", 16.dp, Modifier.weight(1f), onClick = {
                         responseResult.value = ""
@@ -142,7 +128,6 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                             ))
                         }
                         else {
-                            Log.d("Home", "Updating indx $selectedCollectionIndex, $it")
                             selectedCollectionIndex.intValue = it
                             collectionName.value = userAPICollections[selectedCollectionIndex.intValue].internalCollection!!.collectionName
                             endPoint.value = userAPICollections[selectedCollectionIndex.intValue].userAPIs[selectedEndpointIndex.intValue].endPoint
@@ -202,7 +187,7 @@ fun Home(userAPIViewModel: UserAPIViewModel,
                     },
                         onFocusLost = {
                             if (userAPICollections.isNotEmpty()) {
-                                Log.d("Home", "Updating $userAPICollections")
+                                Log.d("Home", "Updating $userAPICollections $endPoint.value")
                                 if (userAPICollections[selectedCollectionIndex.intValue].userAPIs.isEmpty()) {
                                     userAPIViewModel.updateCollectionWithAPI(
                                         userAPICollections[selectedCollectionIndex.intValue],

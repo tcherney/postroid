@@ -1,5 +1,6 @@
 package com.tcherney.postroid
 
+import android.util.Log
 import androidx.collection.SimpleArrayMap
 import androidx.room.ColumnInfo
 import androidx.room.Dao
@@ -41,12 +42,12 @@ data class UserAPI(
     @ColumnInfo(name = "params") val params: HashMap<String,String> = hashMapOf(),
     @ColumnInfo(name = "body_content") val bodyContent: String = "",
     @ColumnInfo(name = "request_type") var requestType: RequestType = RequestType.GET){
+    //TODO sessions, loading spinner
     fun execute(onCompletion: (Response) -> Unit) {
         val headersBuilder = Headers.Builder()
         for (h in headers.entries) {
             headersBuilder.add(h.key,h.value)
         }
-        //TODO add mutable to let ui know request is done
         if (requestType == RequestType.GET) {
             val httpUrl = endPoint.toHttpUrlOrNull()?.newBuilder()
             for (p in params.entries) {
@@ -56,7 +57,7 @@ data class UserAPI(
                 .url(httpUrl!!.build())
                 .headers(headersBuilder.build())
                 .build()
-
+            Log.d("UserAPI", "Sending request $request")
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     e.printStackTrace()
@@ -64,6 +65,7 @@ data class UserAPI(
 
                 override fun onResponse(call: Call, response: Response) {
                     response.use {
+                        Log.d("UserAPI", "Received response $response")
                         onCompletion(response)
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
                     }
@@ -76,7 +78,7 @@ data class UserAPI(
                 .post(bodyContent.toRequestBody()) //TODO different post types
                 .headers(headersBuilder.build())
                 .build()
-
+            Log.d("UserAPI", "Sending request $request")
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     e.printStackTrace()
@@ -84,6 +86,7 @@ data class UserAPI(
 
                 override fun onResponse(call: Call, response: Response) {
                     response.use {
+                        Log.d("UserAPI", "Received response $response")
                         onCompletion(response)
                         if (!response.isSuccessful) throw IOException("Unexpected code $response")
                     }

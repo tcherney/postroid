@@ -16,17 +16,6 @@ import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
-//
-//data class UserAPICollection(
-//    @Embedded val internalCollection: UserAPICollectionInternal? = null,
-//    @Relation(
-//        parentColumn = "collectionID",
-//        entityColumn = "apiID",
-//        associateBy = Junction(UserAPICollectionCrossRef::class)
-//    )
-//    val userAPIs: ArrayList<UserAPI> = arrayListOf(UserAPI())){
-//}
-
 data class UserAPICollection(
     @Embedded val internalCollection: UserAPICollectionInternal? = null,
     @Relation(
@@ -41,12 +30,6 @@ data class UserAPICollection(
 data class UserAPICollectionInternal(
     @PrimaryKey(autoGenerate = true)@ColumnInfo(name = "collection_id") var collectionID: Long = 0,
     @ColumnInfo(name = "collection_name") var collectionName: String = "Untitled",
-)
-
-@Entity(primaryKeys = ["collection_id, api_id"])
-data class UserAPICollectionCrossRef(
-    val collectionID: Long,
-    val apiID: Long,
 )
 
 @Dao
@@ -72,7 +55,7 @@ interface UserAPICollectionDao {
     @Transaction
     suspend fun insertParentAndChild(parent: UserAPICollectionInternal, child: UserAPI) {
         child.collectionID = insertParent(parent)
-        Log.d("UserAPICollection", "Where this " +child.collectionID.toString() + " " + parent.collectionID.toString())
+        Log.d("UserAPICollection", "Inserting child with parent id ${child.collectionID}")
         insertChild(child)
     }
 
